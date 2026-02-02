@@ -348,8 +348,10 @@ class UploadedImageViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         normal_image = request.FILES.get('normal_image')
         carousel_image = request.FILES.get('carousel_image')
-        product_id = request.data.get("product")
-        category_id = request.data.get("category")
+        # Accept both 'product' and 'product_id' field names
+        product_id = request.data.get("product") or request.data.get("product_id")
+        # Accept both 'category' and 'category_id' field names
+        category_id = request.data.get("category") or request.data.get("category_id")
 
         if not normal_image and not carousel_image:
             return Response({"error": "No image provided."}, status=status.HTTP_400_BAD_REQUEST)
@@ -405,8 +407,10 @@ class UploadedImageViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """ Updates an image file, type, and ensures only one foreign key (Product or Category) is set. """
         instance = self.get_object()
-        product_id = request.data.get("product")
-        category_id = request.data.get("category")
+        # Accept both 'product' and 'product_id' field names
+        product_id = request.data.get("product") or request.data.get("product_id")
+        # Accept both 'category' and 'category_id' field names
+        category_id = request.data.get("category") or request.data.get("category_id")
         new_image = request.FILES.get("image")
         new_type = request.data.get("type")  # New: type field
 

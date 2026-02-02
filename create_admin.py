@@ -7,9 +7,9 @@ django.setup()
 from users.models import CustomUser
 
 # Check if admin already exists
-if CustomUser.objects.filter(email='admin@upstocks.com').exists():
+if CustomUser.objects.filter(email='gouthamkumar091@gmail.com').exists():
     print('Admin user already exists!')
-    admin = CustomUser.objects.get(email='admin@upstocks.com')
+    admin = CustomUser.objects.get(email='gouthamkumar091@gmail.com')
     print(f'Email: {admin.email}')
     print(f'Username: {admin.username}')
     print(f'Phone: {admin.phone_number}')
@@ -17,14 +17,14 @@ if CustomUser.objects.filter(email='admin@upstocks.com').exists():
 else:
     # Create admin user
     admin = CustomUser.objects.create_superuser(
-        phone_number='1234567890',
-        username='admin',
-        email='admin@upstocks.com',
-        password='admin123'
+        phone_number='9207606150',
+        username='Goutham',
+        email='gouthamkumar091@gmail.com',
+        password='Admin@123'
     )
     print('Admin user created successfully!')
-    print(f'Email: admin@upstocks.com')
-    print(f'Username: admin')
-    print(f'Password: admin123')
-    print(f'Phone: 1234567890')
+    print(f'Email: gouthamkumar091@gmail.com')
+    print(f'Username: Goutham')
+    print(f'Password: Admin@123')
+    print(f'Phone: 9207606150')
     print(f'Role: {admin.role}')

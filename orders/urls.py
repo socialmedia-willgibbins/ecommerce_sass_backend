@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CartViewSet, OrderViewSet, UserOrdersViewSet, payment_webhook, all_orders
+from .views import CartViewSet, OrderViewSet, UserOrdersViewSet, payment_webhook, razorpay_webhook, all_orders
 
 router = DefaultRouter()
 router.register(r'cart', CartViewSet, basename='cart')
@@ -10,5 +10,6 @@ urlpatterns = [
     path("", include(router.urls)),  
     path("all/", all_orders, name="all_orders"),
     path('users/<int:pk>/', UserOrdersViewSet.as_view({'get': 'user_orders'}), name='user-orders-detail'),
-    path("payment-webhook/", payment_webhook, name="payment_webhook"),
+    path("payment-webhook/", payment_webhook, name="payment_webhook"),  # GET callback redirect
+    path("razorpay-webhook/", razorpay_webhook, name="razorpay_webhook"),  # POST webhook from Razorpay
 ]

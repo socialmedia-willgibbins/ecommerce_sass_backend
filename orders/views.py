@@ -425,6 +425,108 @@ def payment_webhook(request):
 
     return JsonResponse({"error": "Unknown status received"}, status=400)
 
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def razorpay_webhook(request):
+    """Handle Razorpay POST webhook events (payment.captured, payment.failed, etc.)"""
+    try:
+        # Get webhook signature and body
+        webhook_signature = request.headers.get('X-Razorpay-Signature')
+        webhook_secret = settings.WEBHOOK  # 'tstocks123'
+        webhook_body = request.body.decode('utf-8')
+        
+        if not webhook_signature:
+            logger.warning("Razorpay webhook: Missing signature")
+            return JsonResponse({'error': 'Missing signature'}, status=400)
+        
+        # Verify webhook signature
+        expected_signature = hmac.new(
+            webhook_secret.encode(),
+            webhook_body.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if webhook_signature != expected_signature:
+            logger.warning("Razorpay webhook: Invalid signature")
+            return JsonResponse({'error': 'Invalid signature'}, status=400)
+        
+        # Parse webhook payload
+        payload = json.loads(webhook_body)
+        event = payload.get('event')
+        logger.info(f"Razorpay webhook received: {event}")
+        
+        if event == 'payment.captured':
+            # Payment successful
+            payment_entity = payload.get('payload', {}).get('payment', {}).get('entity', {})
+            payment_id = payment_entity.get('id')
+            order_id = payment_entity.get('notes', {}).get('order_id')  # If you pass order_id in notes
+            amount = payment_entity.get('amount', 0) / 100  # Convert from paise to rupees
+            
+            logger.info(f"Payment captured: {payment_id}, Amount: {amount}")
+            
+            # Try to find order by payment_id or use order_id from notes
+            order = None
+            if payment_id:
+                order = Order.objects.filter(razorpay_payment_id=payment_id, is_active=True).first()
+            
+            if order:
+                order.status = "Processing"
+                order.save()
+                logger.info(f"Order {order.order_id} updated to Processing")
+                
+                # Notify admin
+                create_admin_notification(
+                    title="payment_captured",
+                    user=order.user,
+                    message=f"Payment captured for Order #{order.order_id} (₹{amount})",
+                    event_type="payment_success"
+                )
+            else:
+                logger.warning(f"Order not found for payment_id: {payment_id}")
+        
+        elif event == 'payment.failed':
+            # Payment failed
+            payment_entity = payload.get('payload', {}).get('payment', {}).get('entity', {})
+            payment_id = payment_entity.get('id')
+            error_reason = payment_entity.get('error_reason')
+            error_description = payment_entity.get('error_description')
+            
+            logger.warning(f"Payment failed: {payment_id}, Reason: {error_reason}")
+            
+            # Try to find order
+            order = Order.objects.filter(razorpay_payment_id=payment_id, is_active=True).first()
+            if order:
+                order.status = "Failed"
+                order.save()
+                logger.info(f"Order {order.order_id} marked as Failed")
+                
+                # Notify admin
+                create_admin_notification(
+                    title="payment_failed",
+                    user=order.user,
+                    message=f"Payment failed for Order #{order.order_id}: {error_description}",
+                    event_type="payment_failed"
+                )
+        
+        elif event == 'order.paid':
+            # Order paid event (alternative to payment.captured)
+            order_entity = payload.get('payload', {}).get('order', {}).get('entity', {})
+            order_id = order_entity.get('id')
+            amount_paid = order_entity.get('amount_paid', 0) / 100
+            
+            logger.info(f"Order paid: {order_id}, Amount: {amount_paid}")
+        
+        return JsonResponse({'status': 'ok'})
+        
+    except json.JSONDecodeError:
+        logger.error("Razorpay webhook: Invalid JSON")
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Razorpay webhook error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdminOrStaff])
 def all_orders(request):

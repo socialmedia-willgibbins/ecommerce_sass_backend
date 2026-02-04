@@ -35,12 +35,15 @@ SECRET_KEY = os.getenv('SECURE_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'tstocks.in']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'tstocks.in', 'helmstonegroup.com', 'www.helmstonegroup.com']
 
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    "https://tstocks.in","https://www.tstocks.in"
+    "https://tstocks.in",
+    "https://www.tstocks.in",
+    "https://helmstonegroup.com",
+    "https://www.helmstonegroup.com",
 ]
 # Application definition
 
@@ -71,9 +74,11 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://www.tstocks.in"
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://www.tstocks.in",
+    "https://helmstonegroup.com",
+    "https://www.helmstonegroup.com",
 ]
 
 REST_FRAMEWORK = {

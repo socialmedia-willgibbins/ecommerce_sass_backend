@@ -434,7 +434,7 @@ def razorpay_webhook(request):
     try:
         # Get webhook signature and body
         webhook_signature = request.headers.get('X-Razorpay-Signature')
-        webhook_secret = settings.WEBHOOK  # 'tstocks123'
+        webhook_secret = settings.WEBHOOK  # 'helmstone123'
         webhook_body = request.body.decode('utf-8')
         
         if not webhook_signature:
